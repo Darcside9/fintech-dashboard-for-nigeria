@@ -62,11 +62,6 @@ export function parseCSV(csvText: string): ParsedInvoice[] {
       else if (firsValue.includes('rejected')) status = "rejected"
       else if (firsValue.includes('submitted')) status = "submitted"
 
-      // If no line items in CSV, generate from PDF (placeholder until PDF extraction works)
-      if (lineItems.length === 0 && fields[pdfCol]) {
-        lineItems = generateSampleLineItems(parseFloat(fields[amountCol] || '0') || 0)
-      }
-
       const invoice: ParsedInvoice = {
         id: `invoice-${i}`,
         invoiceNumber: fields[invoiceCol] || `INV-${i}`,
@@ -125,48 +120,3 @@ function parseCSVLine(line: string): string[] {
   return result
 }
 
-// Generate sample line items based on invoice amount (placeholder until PDF extraction works)
-function generateSampleLineItems(totalAmount: number): LineItem[] {
-  if (totalAmount === 0) return []
-
-  const descriptions = [
-    'Professional Services',
-    'Software License (Annual)',
-    'Consulting & Advisory',
-    'Product Supply',
-    'Equipment & Hardware',
-    'Training & Support',
-    'Maintenance & Support',
-    'Technical Services',
-  ]
-
-  const lineItems: LineItem[] = []
-
-  // Generate 2-3 line items
-  const itemCount = Math.floor(Math.random() * 2) + 2
-  let remainingAmount = totalAmount
-
-  for (let i = 0; i < itemCount - 1; i++) {
-    const quantity = Math.floor(Math.random() * 10) + 1
-    const unitPrice = Math.floor((remainingAmount / (itemCount - i)) / quantity)
-    if (unitPrice > 0) {
-      lineItems.push({
-        description: descriptions[i % descriptions.length],
-        quantity,
-        unitPrice,
-      })
-      remainingAmount -= quantity * unitPrice
-    }
-  }
-
-  // Add final line item with remaining amount
-  if (remainingAmount > 0) {
-    lineItems.push({
-      description: descriptions[itemCount % descriptions.length],
-      quantity: 1,
-      unitPrice: remainingAmount,
-    })
-  }
-
-  return lineItems
-}
