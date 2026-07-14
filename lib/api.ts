@@ -1,6 +1,25 @@
 import { parseCSV } from './csv-parser'
 
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7ZLPbcGn6_-3zPnd0HXuoL5-rgNSdlYTcj6JJg1qqzN-D-edl8H7pMcNzfFfGvga5iIipkILQxlM2/pub?output=csv'
+const BASE_URL = typeof window === 'undefined' ? process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000' : ''
+
+async function extractLineItemsFromPdf(pdfUrl: string) {
+  try {
+    const response = await fetch(`${BASE_URL}/api/extract-pdf`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pdfUrl }),
+    })
+
+    if (!response.ok) return []
+
+    const data = await response.json()
+    return data.lineItems || []
+  } catch (error) {
+    console.error('[v0] Error calling extract-pdf API:', error)
+    return []
+  }
+}
 
 export async function getInvoiceData() {
   try {
@@ -9,9 +28,23 @@ export async function getInvoiceData() {
     if (!response.ok) throw new Error('Failed to fetch CSV')
 
     const csvText = await response.text()
-    const invoices = parseCSV(csvText)
+    let invoices = parseCSV(csvText)
 
     console.log('[v0] Parsed invoices from CSV:', invoices.length)
+
+    // Fetch line items from PDFs if not already populated
+    invoices = await Promise.all(
+      invoices.map(async (invoice) => {
+        if (invoice.lineItems.length === 0 && invoice.pdfLink) {
+          console.log('[v0] Extracting line items from PDF:', invoice.invoiceNumber)
+          const lineItems = await extractLineItemsFromPdf(invoice.pdfLink)
+          if (lineItems.length > 0) {
+            return { ...invoice, lineItems }
+          }
+        }
+        return invoice
+      })
+    )
 
     // Calculate KPIs from parsed data
     const totalInvoices = invoices.length
