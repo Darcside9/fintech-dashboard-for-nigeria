@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import InvoiceDetailDrawer from "./invoice-detail-drawer"
 
+interface LineItem {
+  description: string
+  quantity: number
+  unitPrice: number
+}
+
 interface Invoice {
   id: string
   invoiceNumber: string
@@ -15,7 +21,8 @@ interface Invoice {
   status: "submitted" | "pending" | "rejected" | "approved"
   submissionDate: string
   firsStatus: string
-  lineItems: Array<{ description: string; quantity: number; unitPrice: number }>
+  pdfLink: string
+  lineItems: LineItem[]
   firsLogs: Array<{ timestamp: string; event: string; status: string }>
 }
 
@@ -64,10 +71,10 @@ export default function InvoiceTable({ invoices }: InvoiceTableProps) {
                     <td className="py-4 px-4 font-medium text-foreground">{invoice.invoiceNumber}</td>
                     <td className="py-4 px-4 text-foreground">{invoice.customer}</td>
                     <td className="py-4 px-4 text-right font-medium text-foreground">
-                      ₦{(invoice.amount / 1000000).toFixed(2)}M
+                      ₦{invoice.amount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="py-4 px-4 text-right text-muted-foreground">
-                      ₦{(invoice.vatAmount / 1000).toFixed(0)}K
+                      ₦{invoice.vatAmount.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="py-4 px-4">
                       <span

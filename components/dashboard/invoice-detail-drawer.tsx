@@ -1,6 +1,6 @@
 "use client"
 
-import { X } from "lucide-react"
+import { X, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface LineItem {
@@ -24,6 +24,7 @@ interface Invoice {
   status: string
   submissionDate: string
   firsStatus: string
+  pdfLink: string
   lineItems: LineItem[]
   firsLogs: FIRSLog[]
 }
@@ -72,7 +73,17 @@ export default function InvoiceDetailDrawer({ invoice, onClose }: InvoiceDetailD
 
           {/* Line Items */}
           <div>
-            <h3 className="text-sm font-bold text-foreground mb-4">Line Items</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-foreground">Line Items</h3>
+              {invoice.pdfLink && (
+                <a href={invoice.pdfLink} target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <FileText className="w-4 h-4" />
+                    View PDF
+                  </Button>
+                </a>
+              )}
+            </div>
             <div className="border border-border rounded-lg overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
@@ -84,31 +95,39 @@ export default function InvoiceDetailDrawer({ invoice, onClose }: InvoiceDetailD
                   </tr>
                 </thead>
                 <tbody>
-                  {invoice.lineItems.map((item, idx) => (
-                    <tr key={idx} className="border-b border-border hover:bg-muted/50">
-                      <td className="py-3 px-4 text-foreground">{item.description}</td>
-                      <td className="py-3 px-4 text-right text-foreground">{item.quantity}</td>
-                      <td className="py-3 px-4 text-right text-foreground">₦{item.unitPrice.toLocaleString()}</td>
-                      <td className="py-3 px-4 text-right font-medium text-foreground">
-                        ₦{(item.quantity * item.unitPrice).toLocaleString()}
+                  {invoice.lineItems.length > 0 ? (
+                    invoice.lineItems.map((item, idx) => (
+                      <tr key={idx} className="border-b border-border hover:bg-muted/50">
+                        <td className="py-3 px-4 text-foreground">{item.description}</td>
+                        <td className="py-3 px-4 text-right text-foreground">{item.quantity}</td>
+                        <td className="py-3 px-4 text-right text-foreground">₦{item.unitPrice.toLocaleString('en-NG')}</td>
+                        <td className="py-3 px-4 text-right font-medium text-foreground">
+                          ₦{(item.quantity * item.unitPrice).toLocaleString('en-NG')}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="py-4 px-4 text-center text-muted-foreground">
+                        No line items available
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
             <div className="mt-4 space-y-2 text-right">
               <div className="flex justify-end gap-8">
                 <span className="text-muted-foreground">Subtotal:</span>
-                <span className="font-medium text-foreground w-32">₦{totalLineItems.toLocaleString()}</span>
+                <span className="font-medium text-foreground w-32">₦{totalLineItems.toLocaleString('en-NG')}</span>
               </div>
               <div className="flex justify-end gap-8 py-2 border-t border-border">
                 <span className="font-semibold text-foreground">VAT (7.5%):</span>
-                <span className="font-bold text-success w-32">₦{invoice.vatAmount.toLocaleString()}</span>
+                <span className="font-bold text-success w-32">₦{invoice.vatAmount.toLocaleString('en-NG')}</span>
               </div>
               <div className="flex justify-end gap-8 py-2 bg-primary/10 px-4 rounded">
                 <span className="font-semibold text-foreground">Total:</span>
-                <span className="font-bold text-primary w-32">₦{invoice.amount.toLocaleString()}</span>
+                <span className="font-bold text-primary w-32">₦{invoice.amount.toLocaleString('en-NG')}</span>
               </div>
             </div>
           </div>
